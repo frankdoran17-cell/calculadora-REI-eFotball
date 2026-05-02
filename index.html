@@ -33,12 +33,12 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
             border-top: 4px solid var(--primary);
         }
 
         h2 {
-            margin-top: 0;
+            margin: 0;
             text-align: center;
             background: -webkit-linear-gradient(left, var(--primary), var(--secondary));
             -webkit-background-clip: text;
@@ -46,7 +46,7 @@
             font-size: 24px;
         }
 
-        p.subtitle {
+        .subtitle {
             text-align: center;
             color: var(--text-muted);
             font-size: 14px;
@@ -74,41 +74,50 @@
             color: var(--text-main);
             font-size: 16px;
             box-sizing: border-box;
-            transition: border-color 0.3s;
         }
 
-        .input-group input:focus {
-            outline: none;
-            border-color: var(--primary);
+        .input-group small {
+            display: block;
+            margin-top: 4px;
+            font-size: 11px;
+            color: #888;
         }
 
         .result-box {
-            margin-top: 30px;
+            margin-top: 25px;
             background: linear-gradient(135deg, var(--secondary), var(--primary));
             padding: 20px;
             border-radius: 10px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
         }
 
         .result-box span {
             display: block;
-            font-size: 14px;
+            font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 5px;
         }
 
         .result-box .score {
-            font-size: 42px;
+            font-size: 48px;
             font-weight: bold;
-            margin: 0;
+            margin: 5px 0;
         }
 
-        .category {
-            margin-top: 10px;
-            font-size: 16px;
-            font-weight: 600;
+        .description-footer {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .license {
+            margin-top: 15px;
+            font-size: 10px;
+            text-align: center;
+            color: #555;
         }
     </style>
 </head>
@@ -116,78 +125,73 @@
 
     <div class="calculator-container">
         <h2>Calculadora REI</h2>
-        <p class="subtitle">Rapidez Efectiva Inercial</p>
+        <p class="subtitle">Rapidez Efectiva Inercial para eFootball</p>
 
         <div class="input-group">
-            <label for="velocidad">Velocidad (Stat)</label>
-            <input type="number" id="velocidad" placeholder="Ej. 90" value="90" oninput="calcularREI()">
+            <label>Velocidad (Stat)</label>
+            <input type="number" id="velocidad" value="90" oninput="calcularREI()">
         </div>
 
         <div class="input-group">
-            <label for="aceleracion">Aceleración (Stat)</label>
-            <input type="number" id="aceleracion" placeholder="Ej. 85" value="85" oninput="calcularREI()">
+            <label>Aceleración (Stat)</label>
+            <input type="number" id="aceleracion" value="85" oninput="calcularREI()">
         </div>
 
         <div class="input-group">
-            <label for="altura">Altura (cm)</label>
-            <input type="number" id="altura" placeholder="Ej. 180" value="180" oninput="calcularREI()">
+            <label>Estatura / Longitud de Piernas (cm)</label>
+            <input type="number" id="altura" value="180" oninput="calcularREI()">
+            <small>*Este valor determina la amplitud de la zancada mecánica.</small>
         </div>
 
         <div class="input-group">
-            <label for="peso">Peso (kg)</label>
-            <input type="number" id="peso" placeholder="Ej. 75" value="75" oninput="calcularREI()">
+            <label>Peso (kg)</label>
+            <input type="number" id="peso" value="75" oninput="calcularREI()">
+            <small>*Afecta la inercia y resistencia en el arranque.</small>
         </div>
 
         <div class="result-box">
-            <span>Puntos de Rapidez</span>
+            <span>Puntos de Rapidez REI</span>
             <div class="score" id="resultado">0.00</div>
-            <div class="category" id="categoria">-</div>
+            <div id="categoria">-</div>
+        </div>
+
+        <div class="description-footer">
+            <strong>Análisis Técnico:</strong> El índice REI procesa la ventaja de rapidez tomando en cuenta que la masa (peso) penaliza el arranque inicial, mientras que las extremidades largas (estatura) favorecen la velocidad punta mediante una zancada de mayor cobertura.
+        </div>
+
+        <div class="license">
+            Distribuido bajo Licencia MIT.
         </div>
     </div>
 
     <script>
         function calcularREI() {
-            // Obtener valores de los inputs
             const V = parseFloat(document.getElementById('velocidad').value) || 0;
             const A = parseFloat(document.getElementById('aceleracion').value) || 0;
             const H = parseFloat(document.getElementById('altura').value) || 0;
             const W = parseFloat(document.getElementById('peso').value) || 0;
 
-            const resultadoDiv = document.getElementById('resultado');
-            const categoriaDiv = document.getElementById('categoria');
+            const resDiv = document.getElementById('resultado');
+            const catDiv = document.getElementById('categoria');
 
-            // Validar que peso y altura sean mayores a 0 para evitar errores matemáticos
             if (W <= 0 || H <= 0) {
-                resultadoDiv.innerText = "--";
-                categoriaDiv.innerText = "Datos incompletos";
+                resDiv.innerText = "--";
+                catDiv.innerText = "Esperando datos...";
                 return;
             }
 
-            // Aplicar la fórmula: REI = [ (V * 0.6) + ( A * (75/W)^0.2 * 0.4 ) ] * (H/175)^0.15
+            // FÓRMULA REI
             const factorInercia = Math.pow(75 / W, 0.2);
             const factorZancada = Math.pow(H / 175, 0.15);
-            
-            const componenteVelocidad = V * 0.6;
-            const componenteAceleracion = A * factorInercia * 0.4;
-            
-            let rei = (componenteVelocidad + componenteAceleracion) * factorZancada;
+            const rei = ((V * 0.6) + (A * factorInercia * 0.4)) * factorZancada;
 
-            // Mostrar el resultado con 2 decimales
-            resultadoDiv.innerText = rei.toFixed(2);
+            resDiv.innerText = rei.toFixed(2);
 
-            // Asignar categoría basada en el resultado
-            if (rei >= 95) {
-                categoriaDiv.innerText = "Élite Supersónico ⚡";
-            } else if (rei >= 85) {
-                categoriaDiv.innerText = "Velocista de Élite 🏃‍♂️";
-            } else if (rei >= 75) {
-                categoriaDiv.innerText = "Rapidez Competitiva ⚽";
-            } else {
-                categoriaDiv.innerText = "Baja Reactividad 🐢";
-            }
+            if (rei >= 95) catDiv.innerText = "Élite Supersónico ⚡";
+            else if (rei >= 85) catDiv.innerText = "Velocista de Élite 🏃‍♂️";
+            else if (rei >= 75) catDiv.innerText = "Rapidez Competitiva ⚽";
+            else catDiv.innerText = "Baja Reactividad 🐢";
         }
-
-        // Ejecutar la función una vez al cargar la página para mostrar el valor inicial
         window.onload = calcularREI;
     </script>
 </body>
